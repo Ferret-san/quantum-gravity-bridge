@@ -1,27 +1,34 @@
 // SPDX-License-Identifier: Apache-2.0
-pragma solidity ^0.8.4;
+pragma solidity ^0.8.19;
 
 import "ds-test/test.sol";
 
 import "../../Constants.sol";
+import "../../Types.sol";
 import "../NamespaceNode.sol";
 import "../TreeHasher.sol";
 
 contract TreeHasherTest is DSTest {
     function setUp() external {}
 
-    function assertEqNamespaceNode(NamespaceNode memory first, NamespaceNode memory second) internal {
-        assertEq(first.min, second.min);
-        assertEq(first.max, second.max);
+    function assertEqNamespaceNode(
+        NamespaceNode memory first,
+        NamespaceNode memory second
+    ) internal {
+        assertTrue(first.min.equalTo(second.min));
+        assertTrue(first.max.equalTo(second.max));
         assertEq(first.digest, second.digest);
     }
 
     function testLeafDigestEmpty() external {
-        bytes8 nid = 0x0000000000000000;
+        Namespace memory nid = Namespace(
+            0x00,
+            0x00000000000000000000000000000000000000000000000000000000
+        );
         NamespaceNode memory expected = NamespaceNode(
             nid,
             nid,
-            0x0a88111852095cae045340ea1f0b279944b2a756a213d9b50107d7489771e159
+            0x0679246d6c4216de0daa08e5523fb2674db2b6599c3b72ff946b488a15290b62
         );
         bytes memory data;
         NamespaceNode memory node = leafDigest(nid, data);
@@ -29,11 +36,14 @@ contract TreeHasherTest is DSTest {
     }
 
     function testLeafDigestSome() external {
-        bytes8 nid = 0xdeadbeefdeadbeef;
+        Namespace memory nid = Namespace(
+            0xde,
+            0xadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefde
+        );
         NamespaceNode memory expected = NamespaceNode(
             nid,
             nid,
-            0x2f8203f6673f9dffe69ca0b64e530656eb7445b062f69c32e2163931e637a659
+            0x3624c7f7169cb5bbd0d010b851ebd0edca10b2a1b126f5fb1a6d5e0d98356e63
         );
         bytes memory data = hex"69";
         NamespaceNode memory node = leafDigest(nid, data);
@@ -41,12 +51,18 @@ contract TreeHasherTest is DSTest {
     }
 
     function testNodeDigest() external {
-        bytes8 nidLeft = 0x0000000000000000;
-        bytes8 nidRight = 0xdeadbeefdeadbeef;
+        Namespace memory nidLeft = Namespace(
+            0x00,
+            0x00000000000000000000000000000000000000000000000000000000
+        );
+        Namespace memory nidRight = Namespace(
+            0xde,
+            0xadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefde
+        );
         NamespaceNode memory expected = NamespaceNode(
             nidLeft,
             nidRight,
-            0xc09cccb48cbc3a3ce4b19b9f25da11325d4fdf823ba56e990006fbc1eb8ddaf2
+            0x95cad48bc181484c851004cf772abe767391e19549d3b8192b55b1d654a71bcd
         );
         NamespaceNode memory left = NamespaceNode(
             nidLeft,
@@ -63,12 +79,18 @@ contract TreeHasherTest is DSTest {
     }
 
     function testNodeParity() external {
-        bytes8 nidMin = 0x0000000000000000;
-        bytes8 nidMax = 0xdeadbeefdeadbeef;
+        Namespace memory nidMin = Namespace(
+            0x00,
+            0x00000000000000000000000000000000000000000000000000000000
+        );
+        Namespace memory nidMax = Namespace(
+            0xde,
+            0xadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefde
+        );
         NamespaceNode memory expected = NamespaceNode(
             nidMin,
             nidMax,
-            0xb16c8e95fa3655fa06d2ccf09f8351443c5a838a1f1b8d5cf2cb1ec00adf2662
+            0xc6960f535d4ab0aed075aed34a116725e8035012ceffe5405ae72abe3bcaa28f
         );
         NamespaceNode memory left = NamespaceNode(
             nidMin,
@@ -76,8 +98,8 @@ contract TreeHasherTest is DSTest {
             0xdb55da3fc3098e9c42311c6013304ff36b19ef73d12ea932054b5ad51df4f49d
         );
         NamespaceNode memory right = NamespaceNode(
-            Constants.PARITY_SHARE_NAMESPACE_ID,
-            Constants.PARITY_SHARE_NAMESPACE_ID,
+            PARITY_SHARE_NAMESPACE(),
+            PARITY_SHARE_NAMESPACE(),
             0xc75cb66ae28d8ebc6eded002c28a8ba0d06d3a78c6b5cbf9b2ade051f0775ac4
         );
         NamespaceNode memory node = nodeDigest(left, right);

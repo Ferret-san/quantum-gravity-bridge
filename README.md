@@ -1,13 +1,13 @@
-# Quantum Gravity Bridge
+# Blobstream-contracts
 
 <!-- markdownlint-disable MD013 MD041 -->
 
-[![GoDoc](https://img.shields.io/badge/godoc-reference-blue?style=flat-square&logo=go)](https://godoc.org/github.com/celestiaorg/quantum-gravity-bridge)
-[![Go Report Card](https://goreportcard.com/badge/github.com/celestiaorg/quantum-gravity-bridge?style=flat-square)](https://goreportcard.com/report/github.com/celestiaorg/quantum-gravity-bridge)
-[![Version](https://img.shields.io/github/tag/celestiaorg/quantum-gravity-bridge.svg?style=flat-square)](https://github.com/celestiaorg/quantum-gravity-bridge/releases/latest)
-[![License: Apache-2.0](https://img.shields.io/github/license/celestiaorg/quantum-gravity-bridge.svg?style=flat-square)](https://github.com/celestiaorg/quantum-gravity-bridge/blob/main/LICENSE)
+[![GoDoc](https://img.shields.io/badge/godoc-reference-blue?style=flat-square&logo=go)](https://godoc.org/github.com/celestiaorg/blobstream-contracts)
+[![Go Report Card](https://goreportcard.com/badge/github.com/celestiaorg/blobstream-contracts?style=flat-square)](https://goreportcard.com/report/github.com/celestiaorg/blobstream-contracts)
+[![Version](https://img.shields.io/github/tag/celestiaorg/blobstream-contracts.svg?style=flat-square)](https://github.com/celestiaorg/blobstream-contracts/releases/latest)
+[![License: Apache-2.0](https://img.shields.io/github/license/celestiaorg/blobstream-contracts.svg?style=flat-square)](https://github.com/celestiaorg/blobstream-contracts/blob/master/LICENSE)
 
-The Quantum Gravity Bridge (QGB) is a Celestia -> EVM message relay.
+Blobstream is a Celestia -> EVM message relay.
 It is based on Umee's Gravity Bridge implementation, [Peggo](https://github.com/umee-network/peggo).
 **This project is under active development and should not be used in production**.
 
@@ -29,7 +29,7 @@ git submodule update
 ```
 
 To regenerate the Go ABI wrappers with `make gen`, you need the `abigen` tool.
-Building requires [Go 1.17+](https://golang.org/dl/).
+Building requires [Go 1.19+](https://golang.org/dl/).
 Install `abigen` with:
 
 ```sh
@@ -52,6 +52,14 @@ Test with:
 forge test
 ```
 
+### Format
+
+Format Solidity with:
+
+```sh
+forge fmt
+```
+
 ### Regenerate Go Wrappers
 
 Go wrappers can be regenerated with:
@@ -67,21 +75,29 @@ Instructions [here](https://github.com/celestiaorg/celestia-app).
 
 ## How it works
 
-The QGB allows Celestia block header data roots to be relayed in one direction, from Celestia to an EVM chain.
+Blobstream allows Celestia block header data roots to be relayed in one direction, from Celestia to an EVM chain.
 It does not support bridging assets such as fungible or non-fungible tokens directly, and cannot send messages from the EVM chain back to Celestia.
 
 It works by relying on a set of signers to attest to some event on Celestia: the Celestia validator set.
-The QGB contract keeps track of the Celestia validator set by updating its view of the validator set with `updateValidatorSet()`.
+Blobstream contract keeps track of the Celestia validator set by updating its view of the validator set with `updateValidatorSet()`.
 More than 2/3 of the voting power of the current view of the validator set must sign off on new relayed events, submitted with `submitDataRootTupleRoot()`.
-Each event is a batch of `DataRootTuple`s, with each tuple representing a single [data root (i.e. block header)](https://celestiaorg.github.io/celestia-specs/latest/specs/data_structures.html#header).
+Each event is a batch of `DataRootTuple`s, with each tuple representing a single [data root (i.e. block header)](https://celestiaorg.github.io/celestia-app/specs/data_structures.html#header).
 Relayed tuples are in the same order as Celestia block headers.
 
 ### Events and messages relayed
 
  **Validator sets**:
- The relayer informs the QGB contract who are the current validators and their power.
+ The relayer informs the Blobstream contract who are the current validators and their power.
  This results in an execution of the `updateValidatorSet` function.
 
  **Batches**:
- The relayer informs the QGB contract of new data root tuple roots.
+ The relayer informs the Blobstream contract of new data root tuple roots.
  This results in an execution of the `submitDataRootTupleRoot` function.
+
+## Audits
+
+| Date       | Auditor                                       | celestia-app                                                                        | blobstream-contracts                                                                                           | Report                                                                                                                                         |
+|------------|-----------------------------------------------|-------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------|
+| 2023/10/17 | [Binary Builders](https://binary.builders/)   | [v1.0.0-rc10](https://github.com/celestiaorg/celestia-app/releases/tag/v1.0.0-rc10) | [eb7a4e7](https://github.com/celestiaorg/blobstream-contracts/commit/eb7a4e74718b80277ad9dde116ead67383f5fe15) | [binary-builders.pdf](https://github.com/celestiaorg/blobstream-contracts/files/13961809/2023-10-17_Celestia_Audit_Report_Binary_Builders.pdf) |
+| 2023/10/26 | [Informal Systems](https://informal.systems/) | [v1.0.0](https://github.com/celestiaorg/celestia-app/tree/v1.0.0)                   | [cf301adf](https://github.com/celestiaorg/blobstream-contracts/blob/cf301adfbfdae138526199fab805822400dcfd5d)  | [informal-systems.pdf](https://github.com/celestiaorg/blobstream-contracts/files/13961767/Celestia_.Q4.2023.QGB-v2-20231026_182304.pdf)        |
+| 2023/11/16 | [Ottersec](https://osec.io/)                  | [v1.3.0](https://github.com/celestiaorg/celestia-app/releases/tag/v1.3.0)           | [v3.1.0](https://github.com/celestiaorg/blobstream-contracts/releases/tag/v3.1.0)                              | [ottersec.pdf](https://github.com/celestiaorg/blobstream-contracts/files/14383577/celestia_blobstream_audit_final.pdf)                         |
